@@ -1,0 +1,62 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+*.vscode
+
+*.mp4
+*.avi
+*.mov
+*.pth
+*.pt
+*.onnx
+cars_yolov11m.engine
+
+perception/data/
+lane_detection/HybridNets
+
+sign_detection/runs
+
+
+build/
+dist/
+out/
+
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Dependencies
+node_modules/
+
+# Build folders
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Coverage
+coverage/
+
+# JetBrains
+.idea/
+
+# Temporary files
+*.tmp
+*.swpassets/*.png
