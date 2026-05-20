@@ -1,0 +1,5 @@
+train: /home/bliahh/Desktop/FACULATATE/Vision-based-drive-assist/perception/data/traffic light.v25i.yolov8/train/images
+val: /home/bliahh/Desktop/FACULATATE/Vision-based-drive-assist/perception/data/traffic light.v25i.yolov8/valid/images
+test: /home/bliahh/Desktop/FACULATATE/Vision-based-drive-assist/perception/data/traffic light.v25i.yolov8/test/images
+nc: 3
+names: ['green', 'red', 'yellow']
