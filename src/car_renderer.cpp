@@ -11,7 +11,11 @@
 using namespace Projection;
 
 
+
+/// @brief incarca modelul de masina din fisier .obj 
+/// @param obj_path 
 void HudRenderer::loadCarModel(const std::string& obj_path) {
+
     std::vector<glm::vec3> vertices, normals;
     std::vector<glm::vec2> uvs;
 
@@ -28,13 +32,13 @@ void HudRenderer::loadCarModel(const std::string& obj_path) {
 
     glGenBuffers(1, &vbo_car_vertices);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_car_vertices);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
     glGenBuffers(1, &vbo_car_normals);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_car_normals);
-    glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(1);
 
@@ -45,26 +49,38 @@ void HudRenderer::loadCarModel(const std::string& obj_path) {
 
 
 void HudRenderer::drawCarModel(const glm::vec3& position, float yaw, float scale, float r, float g, float b, float alpha) {
+
     if (!car_model_loaded || car_vertex_count <= 0) return;
 
     glm::mat4 model_matrix(1.f);
     model_matrix = glm::translate(model_matrix, position);
-    model_matrix = glm::rotate(model_matrix, yaw, glm::vec3(0,1,0));
+    model_matrix = glm::rotate(model_matrix, yaw, glm::vec3(0, 1, 0));
     model_matrix = glm::scale(model_matrix, glm::vec3(scale));
 
     glm::mat4 mvp = buildMVP(viewport_width, viewport_height) * model_matrix;
     glm::mat3 normal_matrix = glm::transpose(glm::inverse(glm::mat3(model_matrix)));
 
     glUseProgram(program_model);
-    glUniformMatrix4fv(glGetUniformLocation(program_model, "uMVP"),       1, GL_FALSE, glm::value_ptr(mvp));
-    glUniformMatrix4fv(glGetUniformLocation(program_model, "uModel"),     1, GL_FALSE, glm::value_ptr(model_matrix));
-    glUniformMatrix3fv(glGetUniformLocation(program_model, "uNormalMat"), 1, GL_FALSE, glm::value_ptr(normal_matrix));
-    glUniform4f(glGetUniformLocation(program_model, "uColor"), r, g, b, alpha);
-    glUniform3f(glGetUniformLocation(program_model, "uLightDir"), 0.3f, 1.0f, 0.5f);
-    glUniform3f(glGetUniformLocation(program_model, "uViewPos"), CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
-    glUniform1f(glGetUniformLocation(program_model, "uTime"), elapsed_time);
-    glUniform1i(glGetUniformLocation(program_model, "uFogEnabled"), fog_enabled ? 1 : 0);
-    glUniform1f(glGetUniformLocation(program_model, "uFogDensity"), fog_density);
+
+    GLint loc_mvp = glGetUniformLocation(program_model, "uMVP");
+    GLint loc_model = glGetUniformLocation(program_model, "uModel");
+    GLint loc_normal_mat = glGetUniformLocation(program_model, "uNormalMat");
+    GLint loc_color = glGetUniformLocation(program_model, "uColor");
+    GLint loc_light_dir = glGetUniformLocation(program_model, "uLightDir");
+    GLint loc_view_pos = glGetUniformLocation(program_model, "uViewPos");
+    GLint loc_time = glGetUniformLocation(program_model, "uTime");
+    GLint loc_fog_enabled = glGetUniformLocation(program_model, "uFogEnabled");
+    GLint loc_fog_density = glGetUniformLocation(program_model, "uFogDensity");
+
+    glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(loc_model, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    glUniformMatrix3fv(loc_normal_mat, 1, GL_FALSE, glm::value_ptr(normal_matrix));
+    glUniform4f(loc_color, r, g, b, alpha);
+    glUniform3f(loc_light_dir, 0.3f, 1.0f, 0.5f);
+    glUniform3f(loc_view_pos, CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
+    glUniform1f(loc_time, elapsed_time);
+    glUniform1i(loc_fog_enabled, fog_enabled ? 1 : 0);
+    glUniform1f(loc_fog_density, fog_density);
 
     glBindVertexArray(vao_car_model);
     glDrawArrays(GL_TRIANGLES, 0, car_vertex_count);
@@ -79,11 +95,7 @@ struct LaneCandidate {
 };
 
 
-static void drawLaneCars(
-    HudRenderer& renderer,
-    std::vector<LaneCandidate>& candidates,
-    int max_count,
-    float r, float g, float b)
+static void drawLaneCars(HudRenderer& renderer, std::vector<LaneCandidate>& candidates, int max_count, float r, float g, float b)
 {
     std::sort(candidates.begin(), candidates.end(),
         [](const LaneCandidate& a, const LaneCandidate& b) {
@@ -91,7 +103,9 @@ static void drawLaneCars(
         });
 
     int drawn = 0;
+
     for (LaneCandidate& c : candidates) {
+
         if (drawn >= max_count) break;
 
         float alpha = 1.0f - (c.distance / Projection::MAX_OBJECT_Z);
@@ -104,6 +118,7 @@ static void drawLaneCars(
 
 
 void HudRenderer::drawCars(const std::list<Object>& cars) {
+
     if (!layer_enabled[LAYER_CARS] || !corridor_is_valid) return;
 
     static std::unordered_map<int, glm::vec3> smoothed;
@@ -116,23 +131,24 @@ void HudRenderer::drawCars(const std::list<Object>& cars) {
     std::vector<LaneCandidate> right_cars;
 
     for (const Object& car : cars) {
+
         if (car.label == "person") continue;
-        if (!car.has_world_coords) continue;
 
         glm::vec3 raw_position = ipmToWorld(car.world_x_m, car.world_z_m);
 
         if (raw_position.z < 3.0f || raw_position.z > MAX_OBJECT_Z) continue;
-
         if (fabsf(raw_position.x) > lane_limit) continue;
 
         glm::vec3 final_position = raw_position;
 
         if (car.track_id >= 0) {
+
             auto it = smoothed.find(car.track_id);
+
             if (it != smoothed.end()) {
                 glm::vec3 old = it->second;
-                final_position.x = old.x*0.7f + raw_position.x*0.3f;
-                final_position.z = old.z*0.7f + raw_position.z*0.3f;
+                final_position.x = old.x * 0.7f + raw_position.x * 0.3f;
+                final_position.z = old.z * 0.7f + raw_position.z * 0.3f;
                 it->second = final_position;
             } else {
                 smoothed[car.track_id] = raw_position;
@@ -142,6 +158,7 @@ void HudRenderer::drawCars(const std::list<Object>& cars) {
         LaneCandidate candidate = {&car, final_position, final_position.z};
 
         float x = final_position.x;
+
         if (fabsf(x) <= half_lane) {
             ego_cars.push_back(candidate);
         } else if (x < -half_lane && x >= -lane_limit) {
@@ -151,18 +168,23 @@ void HudRenderer::drawCars(const std::list<Object>& cars) {
         }
     }
 
-    drawLaneCars(*this, ego_cars,   1, 0.0f, 1.0f, 0.5f);
-    drawLaneCars(*this, left_cars,  1, 1.0f, 0.8f, 0.0f);
+    drawLaneCars(*this, ego_cars, 1, 0.0f, 1.0f, 0.5f);
+    drawLaneCars(*this, left_cars, 1, 1.0f, 0.8f, 0.0f);
     drawLaneCars(*this, right_cars, 1, 1.0f, 0.8f, 0.0f);
 
     std::unordered_map<int, glm::vec3> active;
+
     for (const Object& car : cars) {
+
         if (car.label == "person" || car.track_id < 0) continue;
+
         auto it = smoothed.find(car.track_id);
+
         if (it != smoothed.end()) {
             active[car.track_id] = it->second;
         }
     }
+
     smoothed = std::move(active);
 }
 

@@ -9,6 +9,7 @@
 
 
 void HudRenderer::loadPersonModel(const std::string& obj_path) {
+
     std::vector<glm::vec3> vertices, surface_normal;
     std::vector<glm::vec2> uvs;
 
@@ -54,14 +55,21 @@ void HudRenderer::drawPersonModel(const glm::vec3& position, float yaw_radians, 
 
     glUseProgram(program_model);
 
-    glUniformMatrix4fv(glGetUniformLocation(program_model, "uMVP"),       1, GL_FALSE, glm::value_ptr(mvp));
-    glUniformMatrix4fv(glGetUniformLocation(program_model, "uModel"),     1, GL_FALSE, glm::value_ptr(model_matrix));
-    glUniformMatrix3fv(glGetUniformLocation(program_model, "uNormalMat"), 1, GL_FALSE, glm::value_ptr(normal_mat));
-    glUniform4f(glGetUniformLocation(program_model, "uColor"), r, g, b, alpha);
-    glUniform3f(glGetUniformLocation(program_model, "uLightDir"), 0.3f, 1.0f, 0.5f);
-    glUniform3f(glGetUniformLocation(program_model, "uViewPos"),
-        Projection::CAMERA_POSITION.x, Projection::CAMERA_POSITION.y, Projection::CAMERA_POSITION.z);
-    glUniform1f(glGetUniformLocation(program_model, "uTime"), elapsed_time);
+    GLint loc_mvp = glGetUniformLocation(program_model, "uMVP");
+    GLint loc_model = glGetUniformLocation(program_model, "uModel");
+    GLint loc_normal_mat = glGetUniformLocation(program_model, "uNormalMat");
+    GLint loc_color = glGetUniformLocation(program_model, "uColor");
+    GLint loc_light_dir = glGetUniformLocation(program_model, "uLightDir");
+    GLint loc_view_pos = glGetUniformLocation(program_model, "uViewPos");
+    GLint loc_time = glGetUniformLocation(program_model, "uTime");
+
+    glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(loc_model, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    glUniformMatrix3fv(loc_normal_mat, 1, GL_FALSE, glm::value_ptr(normal_mat));
+    glUniform4f(loc_color, r, g, b, alpha);
+    glUniform3f(loc_light_dir, 0.3f, 1.0f, 0.5f);
+    glUniform3f(loc_view_pos, Projection::CAMERA_POSITION.x, Projection::CAMERA_POSITION.y, Projection::CAMERA_POSITION.z);
+    glUniform1f(loc_time, elapsed_time);
 
     if (vao_person_model == 0 || person_vertex_count <= 0) return;
 
@@ -76,19 +84,20 @@ void HudRenderer::drawPersons(const std::list<Object>& persons) {
     static std::unordered_map<int, glm::vec3> smoothed_positions;
 
     for (const Object& person : persons) {
-        if (person.label != "person") continue;
 
+        if (person.label != "person") continue;
         if (!person.has_world_coords) continue;
 
         glm::vec3 raw_pos = Projection::ipmToWorld(person.world_x_m, person.world_z_m);
-
 
         if (raw_pos.z < 1.0f || raw_pos.z > Projection::MAX_OBJECT_Z) continue;
 
         glm::vec3 world_pos = raw_pos;
 
         if (person.track_id >= 0) {
+
             auto it = smoothed_positions.find(person.track_id);
+
             if (it != smoothed_positions.end()) {
                 world_pos = it->second * 0.8f + raw_pos * 0.2f;
                 it->second = world_pos;
@@ -106,13 +115,18 @@ void HudRenderer::drawPersons(const std::list<Object>& persons) {
     }
 
     std::unordered_map<int, glm::vec3> active_positions;
+
     for (const Object& person : persons) {
+
         if (person.label == "person" && person.track_id >= 0) {
+
             auto it = smoothed_positions.find(person.track_id);
+
             if (it != smoothed_positions.end()) {
                 active_positions[person.track_id] = it->second;
             }
         }
     }
+
     smoothed_positions = std::move(active_positions);
 }

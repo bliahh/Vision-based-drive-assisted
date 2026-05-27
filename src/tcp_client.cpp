@@ -12,8 +12,11 @@ TcpServer::~TcpServer() {
     closeConnection();
 }
 
+
 bool TcpServer::start(int port) {
+
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
     if (server_fd < 0) {
         std::cerr << "[TCP] socket() esuat\n";
         return false;
@@ -31,6 +34,7 @@ bool TcpServer::start(int port) {
         std::cerr << "[TCP] bind() esuat\n";
         return false;
     }
+
     if (listen(server_fd, 1) < 0) {
         std::cerr << "[TCP] listen() esuat\n";
         return false;
@@ -40,10 +44,13 @@ bool TcpServer::start(int port) {
     return true;
 }
 
+
 bool TcpServer::waitForClient() {
+
     sockaddr_in client_address{};
     socklen_t address_length = sizeof(client_address);
     client_fd = accept(server_fd, (sockaddr*)&client_address, &address_length);
+
     if (client_fd < 0) {
         std::cerr << "[TCP] accept() esuat\n";
         return false;
@@ -56,7 +63,9 @@ bool TcpServer::waitForClient() {
     return true;
 }
 
+
 bool TcpServer::readChunk(std::string& out_chunk) {
+
     out_chunk.clear();
     char buffer[4096];
     ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer), 0);
@@ -65,18 +74,23 @@ bool TcpServer::readChunk(std::string& out_chunk) {
         out_chunk.append(buffer, bytes_read);
         return true;
     }
+
     if (bytes_read == 0) {
         std::cout << "[TCP] Client deconectat\n";
         return false;
     }
+
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        return true;  
+        return true;
     }
+
     std::cerr << "[TCP] Eroare recv()\n";
     return false;
 }
 
+
 void TcpServer::closeConnection() {
+
     if (client_fd != -1) { close(client_fd); client_fd = -1; }
     if (server_fd != -1) { close(server_fd); server_fd = -1; }
 }

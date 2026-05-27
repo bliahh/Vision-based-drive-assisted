@@ -1,7 +1,10 @@
 #include "hud_renderer.h"
 #include <GL/glew.h>
 
+
+/// @brief deseneaza cerul, inclusiv cu gradient
 void HudRenderer::drawSky() {
+
     glDisable(GL_DEPTH_TEST);
 
     float quad[] = {

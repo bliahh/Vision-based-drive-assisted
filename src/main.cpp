@@ -14,13 +14,15 @@
 #define ASSET_DIR ".."
 #endif
 
-static std::mutex        g_frame_mutex;
-static FrameData         g_current_frame;
+static std::mutex g_frame_mutex;
+static FrameData g_current_frame;
 static std::atomic<bool> g_app_running{true};
-static HudRenderer       g_renderer;
-static bool              g_gl_initialized = false;
+static HudRenderer g_renderer;
+static bool g_gl_initialized = false;
+
 
 void display() {
+
     if (!g_gl_initialized) {
         glewExperimental = GL_TRUE;
         if (glewInit() != GLEW_OK) return;
@@ -30,20 +32,19 @@ void display() {
     }
 
     FrameData frame_snapshot;
+
     {
         std::lock_guard<std::mutex> lock(g_frame_mutex);
         frame_snapshot = g_current_frame;
     }
 
-    glClearColor(0.02f, 0.02f, 0.08f, 1.f);  
+    glClearColor(0.02f, 0.02f, 0.08f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
     g_renderer.drawSky();
-    //g_renderer.beginFrame();
-    glDisable(GL_DEPTH_TEST); 
-    g_renderer.drawStars();     
-    glEnable(GL_DEPTH_TEST);  
+    glDisable(GL_DEPTH_TEST);
+    g_renderer.drawStars();
+    glEnable(GL_DEPTH_TEST);
     g_renderer.drawRain();
     g_renderer.drawRoad();
     g_renderer.drawTrotuar();
@@ -55,39 +56,47 @@ void display() {
     g_renderer.drawBuildings();
     g_renderer.drawPersons(frame_snapshot.detected_cars);
     g_renderer.drawStreetLights();
-    //g_renderer.endFrame();
 
     glutSwapBuffers();
     glutPostRedisplay();
 }
 
+
 void reshape(int w, int h) {
+
     glViewport(0, 0, w, h);
     g_renderer.resize(w, h);
 }
 
 
 void keyboard(unsigned char key, int x, int y) {
+
     switch (key) {
-        case 'f': g_renderer.fog_enabled = !g_renderer.fog_enabled;
-                  printf("[FOG] %s\n", g_renderer.fog_enabled ? "ON" : "OFF");
-                  break;
-        case '+': g_renderer.fog_density += 0.01f;
-          printf("[FOG] density=%.3f\n", g_renderer.fog_density);
-          break;
-case '-': g_renderer.fog_density -= 0.01f;
-          if (g_renderer.fog_density < 0.0f) g_renderer.fog_density = 0.0f;
-          printf("[FOG] density=%.3f\n", g_renderer.fog_density);
-          break;
-          case 'r': g_renderer.rain_enabled = !g_renderer.rain_enabled;
-          printf("[RAIN] %s\n", g_renderer.rain_enabled ? "ON" : "OFF");
-          break;
+        case 'f':
+            g_renderer.fog_enabled = !g_renderer.fog_enabled;
+            printf("[FOG] %s\n", g_renderer.fog_enabled ? "ON" : "OFF");
+            break;
+        case '+':
+            g_renderer.fog_density += 0.01f;
+            printf("[FOG] density=%.3f\n", g_renderer.fog_density);
+            break;
+        case '-':
+            g_renderer.fog_density -= 0.01f;
+            if (g_renderer.fog_density < 0.0f) g_renderer.fog_density = 0.0f;
+            printf("[FOG] density=%.3f\n", g_renderer.fog_density);
+            break;
+        case 'r':
+            g_renderer.rain_enabled = !g_renderer.rain_enabled;
+            printf("[RAIN] %s\n", g_renderer.rain_enabled ? "ON" : "OFF");
+            break;
     }
 }
 
 
 int main(int argc, char** argv) {
+
     int tcp_port = 5005;
+
     for (int i = 1; i < argc - 1; i++) {
         if (std::string(argv[i]) == "--port") {
             tcp_port = std::atoi(argv[i + 1]);
@@ -103,7 +112,6 @@ int main(int argc, char** argv) {
     );
 
     std::cout << "[INFO] Port TCP: " << tcp_port << "\n";
-    std::cout << "[INFO] Taste: 1=ZonaCond 2=Benzi 3=Masini 4=Semne D=Debug Q=Iesire\n";
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);

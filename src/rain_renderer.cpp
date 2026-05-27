@@ -7,22 +7,29 @@
 
 using namespace Projection;
 
+
 void HudRenderer::loadRain(int count) {
+
     std::vector<float> points;
     srand(123);
+
     for (int i = 0; i < count; i++) {
+
         float x = ((rand() % 600) - 300) / 10.f;
         float y = (rand() % 300) / 10.f;
         float z = (rand() % 800) / 10.f;
+
         points.push_back(x);
         points.push_back(y);
         points.push_back(z);
-       
+
         points.push_back(x);
-        points.push_back(y - 0.15f);  
+        points.push_back(y - 0.15f);
         points.push_back(z);
     }
+
     rain_count = count * 2;
+
     glGenVertexArrays(1, &vao_rain);
     glBindVertexArray(vao_rain);
     glGenBuffers(1, &vbo_rain);
@@ -33,7 +40,9 @@ void HudRenderer::loadRain(int count) {
     glBindVertexArray(0);
 }
 
+
 void HudRenderer::drawRain() {
+
     if (!rain_enabled || rain_count == 0) return;
 
     static auto start = std::chrono::steady_clock::now();
@@ -41,8 +50,12 @@ void HudRenderer::drawRain() {
 
     glm::mat4 mvp = buildMVP(viewport_width, viewport_height);
     glUseProgram(program_rain);
-    glUniformMatrix4fv(glGetUniformLocation(program_rain, "uMVP"), 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniform1f(glGetUniformLocation(program_rain, "uTime"), time);
+
+    GLint loc_mvp = glGetUniformLocation(program_rain, "uMVP");
+    GLint loc_time = glGetUniformLocation(program_rain, "uTime");
+
+    glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniform1f(loc_time, time);
 
     glLineWidth(1.5f);
     glBindVertexArray(vao_rain);
